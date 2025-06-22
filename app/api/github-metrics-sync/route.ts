@@ -1,5 +1,6 @@
 import { Octokit } from '@octokit/rest'
 import { NextRequest, NextResponse } from 'next/server'
+import { updateGitHubMetrics } from '@/lib/neondb-service'
 
 export async function GET(request: NextRequest) {
 	try {
@@ -13,18 +14,38 @@ export async function GET(request: NextRequest) {
 			auth: process.env.GITHUB_TOKEN,
 		})
 
-		// Step 1: Fetch all repositories owned by the authenticated user
+		// Step 1: Fetch all repositories owned by the authenticated user with pagination
 		// Using per_page: 100 to minimize API calls (max is 100)
 		// affiliation: 'owner' ensures we only get repos we own, not ones we collaborate on
 		console.log('Fetching user repositories...')
-		const repos = await octokit.request('GET /user/repos', {
-			per_page: 100,
-			affiliation: 'owner',
-		})
+
+		const allRepos = []
+		let page = 1
+		let hasMorePages = true
+
+		while (hasMorePages) {
+			const repos = await octokit.request('GET /user/repos', {
+				per_page: 100,
+				page: page,
+				affiliation: 'owner',
+			})
+
+			console.log(`Fetched page ${page}: ${repos.data.length} repositories`)
+			allRepos.push(...repos.data)
+
+			// If we got less than 100 repos, we've reached the last page
+			hasMorePages = repos.data.length === 100
+			page++
+
+			// Add a small delay between pagination requests to be respectful
+			if (hasMorePages) {
+				await new Promise((resolve) => setTimeout(resolve, 100))
+			}
+		}
 
 		// Step 2: Count total repositories
-		const totalRepos = repos.data.length
-		console.log(`Found ${totalRepos} repositories`)
+		const totalRepos = allRepos.length
+		console.log(`Found ${totalRepos} repositories across ${page - 1} pages`)
 
 		// Step 3: Get authenticated user info to avoid hardcoding username
 		const { data: authenticatedUser } = await octokit.request('GET /user')
@@ -40,7 +61,7 @@ export async function GET(request: NextRequest) {
 			new Promise((resolve) => setTimeout(resolve, ms))
 
 		// Loop through each repository to count contributions
-		for (const repo of repos.data) {
+		for (const repo of allRepos) {
 			try {
 				// Add small delay to avoid hitting rate limits too aggressively
 				// GitHub allows 5,000 requests/hour, so 100ms delay gives us plenty of headroom
@@ -92,6 +113,11 @@ export async function GET(request: NextRequest) {
 			`Successfully processed ${processedRepos}/${totalRepos} repositories`
 		)
 		console.log(`Total commits found: ${totalCommits}`)
+
+		// Step 7: Update database with the collected metrics
+		// Await the database operation to ensure it completes before responding
+		console.log('Updating database with new metrics...')
+		await updateGitHubMetrics(totalCommits, totalRepos)
 
 		return NextResponse.json({
 			success: true,

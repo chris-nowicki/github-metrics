@@ -1,34 +1,30 @@
-import { neon } from '@neondatabase/serverless'
+import { getGitHubMetrics } from '@/lib/neondb-service'
+import type { GitHubMetrics } from '@/lib/neondb-service'
 
 export const dynamic = 'force-dynamic'
 
-async function getData() {
-	if (!process.env.DATABASE_URL) {
-		throw new Error('DATABASE_URL environment variable is not set')
-	}
-
-	try {
-		const sql = neon(process.env.DATABASE_URL)
-		const response =
-			await sql`SELECT * FROM "github metrics"."github-metrics" ORDER BY id ASC LIMIT 1`
-		return response[0]
-	} catch (error) {
-		console.error('Error fetching data:', error)
-		throw new Error('Failed to fetch data from the database')
-	}
-}
-
 export default async function Home() {
-	const data = await getData()
+	const data: GitHubMetrics | null = await getGitHubMetrics()
+
+	if (!data) {
+		return (
+			<div className='flex flex-col items-center justify-center min-h-screen'>
+				<div className='flex flex-col items-center justify-center border-2 rounded-lg p-6 shadow-lg max-w-md w-full text-xl'>
+					<p>No GitHub metrics available.</p>
+				</div>
+			</div>
+		)
+	}
 	return (
 		<div className='flex flex-col items-center justify-center min-h-screen'>
 			<div className='flex flex-col items-center justify-center border-2 rounded-lg p-6 shadow-lg max-w-md w-full text-xl'>
 				<ul>
 					<li>
-						<span className='font-bold'>{data.commits}</span> total commits!
+						<span className='font-bold'>{data.commits || 0}</span> total
+						commits!
 					</li>
 					<li>
-						<span className='font-bold'>{data.repos}</span> total repos!
+						<span className='font-bold'>{data.repos || 0}</span> total repos!
 					</li>
 				</ul>
 			</div>
