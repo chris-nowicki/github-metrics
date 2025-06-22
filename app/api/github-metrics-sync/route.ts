@@ -1,133 +1,90 @@
-import { Octokit } from '@octokit/rest'
 import { NextRequest, NextResponse } from 'next/server'
+import { Octokit } from '@octokit/rest'
 import { updateGitHubMetrics } from '@/lib/neondb-service'
 
 export async function GET(request: NextRequest) {
-	try {
-		// Verify the request is from your cron service
-		const authHeader = request.headers.get('authorization')
-		if (!authHeader || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-			return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-		}
+  try {
+    // Verify the request is from your cron service
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
-		const octokit = new Octokit({
-			auth: process.env.GITHUB_TOKEN,
-		})
+    // Initialize Octokit
+    const octokit = new Octokit({
+      auth: process.env.GITHUB_TOKEN,
+    })
 
-		// Step 1: Fetch all repositories owned by the authenticated user with pagination
-		// Using per_page: 100 to minimize API calls (max is 100)
-		// affiliation: 'owner' ensures we only get repos we own, not ones we collaborate on
-		console.log('Fetching user repositories...')
+    // Get authenticated user
+    const { data: authenticatedUser } = await octokit.request('GET /user')
+    const username = authenticatedUser.login
 
-		const allRepos = []
-		let page = 1
-		let hasMorePages = true
+    // Fetch all repositories with pagination
+    const allRepos = []
+    let page = 1
+    let hasMorePages = true
 
-		while (hasMorePages) {
-			const repos = await octokit.request('GET /user/repos', {
-				per_page: 100,
-				page: page,
-				affiliation: 'owner',
-			})
+    while (hasMorePages) {
+      const repos = await octokit.request('GET /user/repos', {
+        per_page: 100,
+        page: page,
+        affiliation: 'owner',
+      })
 
-			console.log(`Fetched page ${page}: ${repos.data.length} repositories`)
-			allRepos.push(...repos.data)
+      allRepos.push(...repos.data)
+      hasMorePages = repos.data.length === 100
+      page++
 
-			// If we got less than 100 repos, we've reached the last page
-			hasMorePages = repos.data.length === 100
-			page++
+      if (hasMorePages) {
+        await new Promise((resolve) => setTimeout(resolve, 100))
+      }
+    }
 
-			// Add a small delay between pagination requests to be respectful
-			if (hasMorePages) {
-				await new Promise((resolve) => setTimeout(resolve, 100))
-			}
-		}
+    // Process repositories and count commits
+    let totalCommits = 0
+    let processedRepos = 0
+    const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
-		// Step 2: Count total repositories
-		const totalRepos = allRepos.length
-		console.log(`Found ${totalRepos} repositories across ${page - 1} pages`)
+    for (const repo of allRepos) {
+      try {
+        await delay(100)
 
-		// Step 3: Get authenticated user info to avoid hardcoding username
-		const { data: authenticatedUser } = await octokit.request('GET /user')
-		const username = authenticatedUser.login
-		console.log(`Fetching commits for user: ${username}`)
+        const contributors = await octokit.request(
+          'GET /repos/{owner}/{repo}/contributors',
+          {
+            owner: repo.owner.login,
+            repo: repo.name,
+          }
+        )
 
-		// Step 4: Initialize commit counter and process each repository
-		let totalCommits = 0
-		let processedRepos = 0
+        const ourContribution = contributors.data.find(
+          contributor => contributor.login === username
+        )
+        
+        if (ourContribution) {
+          totalCommits += ourContribution.contributions
+        }
 
-		// Helper function to add delay between API calls to respect rate limits
-		const delay = (ms: number) =>
-			new Promise((resolve) => setTimeout(resolve, ms))
+        processedRepos++
+      } catch (repoError) {
+        console.warn(`Failed to fetch commits for repository ${repo.name}`)
+        continue
+      }
+    }
 
-		// Loop through each repository to count contributions
-		for (const repo of allRepos) {
-			try {
-				// Add small delay to avoid hitting rate limits too aggressively
-				// GitHub allows 5,000 requests/hour, so 100ms delay gives us plenty of headroom
-				await delay(100)
+    // Update database
+    await updateGitHubMetrics(totalCommits, allRepos.length)
 
-				console.log(`Processing repository: ${repo.name}`)
+    return NextResponse.json({
+      success: true,
+      username: username,
+      totalCommits: totalCommits,
+      totalRepos: allRepos.length,
+      timestamp: new Date().toISOString(),
+    })
 
-				// Step 5: Fetch contributors for current repository
-				// This endpoint returns contribution counts for each contributor
-				const contributors = await octokit.request(
-					'GET /repos/{owner}/{repo}/contributors',
-					{
-						owner: repo.owner.login,
-						repo: repo.name,
-					}
-				)
-
-				// Step 6: Find our contributions in the contributors list
-				// Only count commits from the authenticated user
-				if (contributors.data.length > 0) {
-					for (const contributor of contributors.data) {
-						if (contributor.login === username) {
-							totalCommits += contributor.contributions
-							console.log(
-								`Added ${contributor.contributions} commits from ${repo.name}`
-							)
-							break // Found our contributions, no need to continue loop
-						}
-					}
-				}
-
-				processedRepos++
-			} catch (repoError) {
-				// Handle individual repository errors gracefully
-				// Some repos might be private, archived, or have other access issues
-				console.warn(
-					`Failed to fetch commits for repository ${repo.name}:`,
-					repoError && typeof repoError === 'object' && 'message' in repoError
-						? (repoError as { message: string }).message
-						: String(repoError)
-				)
-
-				// Continue processing other repositories instead of failing completely
-				continue
-			}
-		}
-
-		console.log(
-			`Successfully processed ${processedRepos}/${totalRepos} repositories`
-		)
-		console.log(`Total commits found: ${totalCommits}`)
-
-		// Step 7: Update database with the collected metrics
-		// Await the database operation to ensure it completes before responding
-		console.log('Updating database with new metrics...')
-		await updateGitHubMetrics(totalCommits, totalRepos)
-
-		return NextResponse.json({
-			success: true,
-			username: username,
-			totalCommits: totalCommits,
-			totalRepos: totalRepos,
-			timestamp: new Date().toISOString(),
-		})
-	} catch (error) {
-		console.error('Cron job failed:', error)
-		return NextResponse.json({ error: 'Job failed' }, { status: 500 })
-	}
+  } catch (error) {
+    console.error('GitHub Metrics Cron Job failed:', error)
+    return NextResponse.json({ error: 'GitHub Metrics Cron Job Failed' }, { status: 500 })
+  }
 }
