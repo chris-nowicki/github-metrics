@@ -1,8 +1,5 @@
-import { getGitHubMetrics } from '@/lib/neondb-service'
-import type { GitHubMetrics } from '@/lib/neondb-service'
-import { FaGithub } from 'react-icons/fa'
-import { HiDocumentText } from 'react-icons/hi2'
-import { FaCodeBranch, FaFolder } from 'react-icons/fa'
+import { getGitHubMetrics, type GitHubMetrics } from '@/lib/neondb-service'
+import { FaCodeBranch, FaFolder, FaGithub  } from 'react-icons/fa'
 
 export const dynamic = 'force-dynamic'
 

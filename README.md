@@ -1,36 +1,143 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GitHub Metrics Dashboard
+
+A Next.js application that demonstrates how to use Vercel Cron Jobs to efficiently display GitHub metrics. Instead of fetching data from GitHub's API on every page load, this app uses scheduled background jobs to periodically update a database with the latest commit counts and repository information.
+
+## Features
+
+- 📊 **Real-time GitHub Metrics**: Display total commits and repositories
+- ⏰ **Vercel Cron Jobs**: Automated data synchronization
+- 🚀 **Fast Performance**: Pre-computed data for instant page loads
+- 📱 **Mobile Responsive**: Optimized for all device sizes
+- 🎨 **Modern UI**: Clean, shadcn/ui-inspired design
+- 📚 **Documentation**: Built-in docs with markdown support and Mermaid diagrams
+
+## Tech Stack
+
+- **Frontend**: Next.js 15, React, TypeScript
+- **Styling**: Tailwind CSS
+- **Database**: Neon (PostgreSQL)
+- **Deployment**: Vercel
+- **Cron Jobs**: Vercel Cron
+- **APIs**: GitHub REST API
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+
+- pnpm (recommended)
+- GitHub Personal Access Token
+- Neon database
+
+### Installation
+
+1. Clone the repository:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/chris-nowicki/github-metrics.git
+cd github-metrics
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm install
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. Set up environment variables:
 
-## Learn More
+```bash
+cp .env.example .env.local
+```
 
-To learn more about Next.js, take a look at the following resources:
+Add your environment variables:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```env
+GITHUB_TOKEN=your_github_personal_access_token
+DATABASE_URL=your_neon_database_url
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+4. Run the development server:
 
-## Deploy on Vercel
+```bash
+pnpm dev
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Open [http://localhost:3000](http://localhost:3000) to see the application.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## How It Works
+
+1. **Cron Job**: A Vercel Cron Job runs periodically (configured in `vercel.json`)
+2. **Data Sync**: The cron job fetches latest GitHub metrics via the GitHub API
+3. **Database Storage**: Metrics are stored in a Neon PostgreSQL database
+4. **Fast Display**: The web app displays pre-computed data for instant loading
+
+## Project Structure
+
+```
+├── app/
+│   ├── api/
+│   │   └── github-metrics-sync/   # Cron job endpoint
+│   ├── docs/                      # Documentation pages
+│   ├── page.tsx                   # Main landing page
+│   └── layout.tsx                 # Root layout
+├── lib/
+│   └── neondb-service.ts          # Database service
+├── public/                        # Static assets
+└── vercel.json                    # Vercel configuration & cron jobs
+```
+
+## API Endpoints
+
+- `GET /api/github-metrics-sync` - Manually trigger metrics sync (also used by cron)
+
+## Documentation
+
+Visit `/docs` to view the full documentation, including:
+
+- Architecture overview
+- Setup instructions
+- API reference
+- Deployment guide
+
+## Deployment
+
+### Deploy to Vercel
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/chris-nowicki/github-metrics)
+
+1. Connect your GitHub repository to Vercel
+2. Add environment variables in Vercel dashboard
+3. Deploy!
+
+The cron job will automatically start running based on the schedule in `vercel.json`.
+
+## Environment Variables
+
+| Variable       | Description                     | Required |
+| -------------- | ------------------------------- | -------- |
+| `GITHUB_TOKEN` | GitHub Personal Access Token    | Yes      |
+| `DATABASE_URL` | Neon database connection string | Yes      |
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'Add amazing feature'`
+4. Push to branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Author
+
+**Chris Nowicki**
+
+- Website: [chrisnowicki.dev](https://www.chrisnowicki.dev)
+- GitHub: [@chris-nowicki](https://github.com/chris-nowicki)
+
+---
+
+Made with ❤️ using Next.js and Vercel
