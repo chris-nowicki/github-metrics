@@ -34,13 +34,6 @@ export default async function Home() {
 						result is fast page loads while keeping data fresh.
 					</p>
 					<div className='flex gap-3 mt-4'>
-						{/* <a
-							href='/docs'
-							className='inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 w-fit'
-						>
-							<HiDocumentText className='w-5 h-5' />
-							View Documentation
-						</a> */}
 						<a
 							href='https://github.com/chris-nowicki/github-metrics'
 							target='_blank'
@@ -58,7 +51,16 @@ export default async function Home() {
 							GitHub Metrics
 						</h3>
 						<p className='text-sm text-gray-600'>
-							Live data from your repositories
+							Live data from{' '}
+							<a
+								href='https://github.com/chris-nowicki'
+								className='text-blue-600 hover:underline'
+								target='_blank'
+								rel='noopener noreferrer'
+							>
+								chris nowicki's
+							</a>{' '}
+							repositories
 						</p>
 					</div>
 					<div className='p-6 pt-0 space-y-4'>
@@ -88,7 +90,12 @@ export default async function Home() {
 				</div>
 				<span className='text-sm my-2'>
 					made with ❤️ by{' '}
-					<a href='https://www.chrisnowicki.dev' target='_blank'>
+					<a
+						href='https://www.chrisnowicki.dev'
+						className='hover:text-blue-600 hover:underline'
+						target='_blank'
+						rel='noopener noreferrer'
+					>
 						Chris Nowicki
 					</a>
 				</span>
