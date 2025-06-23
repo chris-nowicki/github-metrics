@@ -108,6 +108,7 @@ The cron job will automatically start running based on the schedule in `vercel.j
 | -------------- | ------------------------------- | -------- |
 | `GITHUB_TOKEN` | GitHub Personal Access Token    | Yes      |
 | `DATABASE_URL` | Neon database connection string | Yes      |
+| `CRON_SECRET`  | Vervel Cron Secret              | Yes      |
 
 ## Contributing
 
