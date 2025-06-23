@@ -78,7 +78,6 @@ Open [http://localhost:3000](http://localhost:3000) to see the application.
 ├── app/
 │   ├── api/
 │   │   └── github-metrics-sync/   # Cron job endpoint
-│   ├── docs/                      # Documentation pages
 │   ├── page.tsx                   # Main landing page
 │   └── layout.tsx                 # Root layout
 ├── lib/
@@ -90,15 +89,6 @@ Open [http://localhost:3000](http://localhost:3000) to see the application.
 ## API Endpoints
 
 - `GET /api/github-metrics-sync` - Manually trigger metrics sync (also used by cron)
-
-## Documentation
-
-Visit `/docs` to view the full documentation, including:
-
-- Architecture overview
-- Setup instructions
-- API reference
-- Deployment guide
 
 ## Deployment
 
