@@ -37,7 +37,7 @@ export default async function Home() {
 					</div>
 				</div>
 				<div className='rounded-lg border border-gray-200 bg-white text-gray-900 shadow-sm max-w-md w-full mt-4'>
-					<div className='flex flex-col space-y-1.5 p-4 sm:p-6 pb-3'>
+					<div className='flex flex-col space-y-1.5 px-2 pt-2 sm:px-6 sm:pt-6'>
 						<h3 className='text-lg font-semibold leading-none tracking-tight'>
 							GitHub Metrics
 						</h3>
@@ -54,7 +54,7 @@ export default async function Home() {
 							repositories
 						</p>
 					</div>
-					<div className='p-4 sm:p-6 pt-0 space-y-4'>
+					<div className='p-2 sm:p-6 pt-2 space-y-4'>
 						{!data ? (
 							<p className='text-center text-gray-500'>
 								No GitHub metrics available.
