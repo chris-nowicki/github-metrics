@@ -9,19 +9,10 @@ export const dynamic = 'force-dynamic'
 export default async function Home() {
 	const data: GitHubMetrics | null = await getGitHubMetrics()
 
-	if (!data) {
-		return (
-			<div className='flex flex-col items-center justify-center min-h-screen'>
-				<div className='flex flex-col items-center justify-center border-2 rounded-lg p-6 shadow-lg max-w-md w-full text-xl'>
-					<p>No GitHub metrics available.</p>
-				</div>
-			</div>
-		)
-	}
 	return (
-		<div className='flex flex-col items-center justify-center'>
-			<div className='flex flex-col max-w-xl mx-auto'>
-				<div className='flex flex-col justify-center mt-12 mb-8 w-full gap-4'>
+		<div className='flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8'>
+			<div className='flex flex-col max-w-xl mx-auto w-full'>
+				<div className='flex flex-col justify-center mt-8 sm:mt-12 mb-6 sm:mb-8 w-full gap-4'>
 					<h1 className='text-2xl font-bold md:text-4xl'>
 						Vercel Cron Job Demo
 					</h1>
@@ -38,15 +29,15 @@ export default async function Home() {
 							href='https://github.com/chris-nowicki/github-metrics'
 							target='_blank'
 							rel='noopener noreferrer'
-							className='inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-800 hover:bg-gray-900 text-white font-medium rounded-lg transition-colors duration-200 w-fit'
+							className='inline-flex items-center justify-center gap-2 px-4 sm:px-6 py-3 bg-gray-800 hover:bg-gray-900 text-white font-medium rounded-lg transition-colors duration-200 w-fit text-sm sm:text-base'
 						>
-							<FaGithub className='w-5 h-5' />
+							<FaGithub className='w-4 h-4 sm:w-5 sm:h-5' />
 							View Code
 						</a>
 					</div>
 				</div>
 				<div className='rounded-lg border border-gray-200 bg-white text-gray-900 shadow-sm max-w-md w-full mt-4'>
-					<div className='flex flex-col space-y-1.5 p-6 pb-3'>
+					<div className='flex flex-col space-y-1.5 p-4 sm:p-6 pb-3'>
 						<h3 className='text-lg font-semibold leading-none tracking-tight'>
 							GitHub Metrics
 						</h3>
@@ -63,29 +54,43 @@ export default async function Home() {
 							repositories
 						</p>
 					</div>
-					<div className='p-6 pt-0 space-y-4'>
-						<div className='flex items-center space-x-4 rounded-md border border-gray-200 p-4'>
-							<FaCodeBranch className='h-4 w-4 text-blue-600' />
-							<div className='flex-1 space-y-1'>
-								<p className='text-sm font-medium leading-none'>
-									Total Commits
-								</p>
-								<p className='text-xs text-gray-600'>Across all repositories</p>
-							</div>
-							<div className='text-2xl font-bold'>{data.commits}</div>
-						</div>
-						<div className='flex items-center space-x-4 rounded-md border border-gray-200 p-4'>
-							<FaFolder className='h-4 w-4 text-green-600' />
-							<div className='flex-1 space-y-1'>
-								<p className='text-sm font-medium leading-none'>
-									Total Repositories
-								</p>
-								<p className='text-xs text-gray-600'>
-									Public and private repos
-								</p>
-							</div>
-							<div className='text-2xl font-bold'>{data.repos}</div>
-						</div>
+					<div className='p-4 sm:p-6 pt-0 space-y-4'>
+						{!data ? (
+							<p className='text-center text-gray-500'>
+								No GitHub metrics available.
+							</p>
+						) : (
+							<>
+								<div className='flex items-center space-x-3 sm:space-x-4 rounded-md border border-gray-200 p-3 sm:p-4'>
+									<FaCodeBranch className='h-4 w-4 text-blue-600 flex-shrink-0' />
+									<div className='flex-1 space-y-1 min-w-0'>
+										<p className='text-sm font-medium leading-none'>
+											Total Commits
+										</p>
+										<p className='text-xs text-gray-600'>
+											Across all repositories
+										</p>
+									</div>
+									<div className='text-xl sm:text-2xl font-bold flex-shrink-0'>
+										{data.commits}
+									</div>
+								</div>
+								<div className='flex items-center space-x-3 sm:space-x-4 rounded-md border border-gray-200 p-3 sm:p-4'>
+									<FaFolder className='h-4 w-4 text-green-600 flex-shrink-0' />
+									<div className='flex-1 space-y-1 min-w-0'>
+										<p className='text-sm font-medium leading-none'>
+											Total Repositories
+										</p>
+										<p className='text-xs text-gray-600'>
+											Public and private repos
+										</p>
+									</div>
+									<div className='text-xl sm:text-2xl font-bold flex-shrink-0'>
+										{data.repos}
+									</div>
+								</div>
+							</>
+						)}
 					</div>
 				</div>
 				<span className='text-sm my-2'>
