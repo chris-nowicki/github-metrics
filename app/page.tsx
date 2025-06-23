@@ -38,7 +38,8 @@ export default async function Home() {
 				</div>
 				<div className='rounded-lg border border-gray-200 bg-white text-gray-900 shadow-sm max-w-md w-full mt-4'>
 					<div className='flex flex-col space-y-1.5 px-2 pt-2 sm:px-6 sm:pt-6'>
-						<h3 className='text-lg font-semibold leading-none tracking-tight'>
+						<h3 className='text-lg font-semibold leading-none tracking-tight flex items-center gap-2'>
+							<FaGithub className='h-5 w-5' />
 							GitHub Metrics
 						</h3>
 						<p className='text-sm text-gray-600'>
